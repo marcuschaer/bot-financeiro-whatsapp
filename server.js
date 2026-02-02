@@ -13,28 +13,21 @@ app.get("/", (req, res) => {
 });
 
 // Endpoint do WhatsApp
-app.post("/whatsapp", (req, res) => {
+app.post("/", (req, res) => {
   console.log("BODY RECEBIDO:", req.body);
 
-  // 1) responde IMEDIATO
   const twiml = new twilio.twiml.MessagingResponse();
-  twiml.message("OK, recebi. Processando...");
+  twiml.message("✅ Bot ativo. Mensagem recebida.");
 
   res.status(200);
   res.type("text/xml");
   res.send(twiml.toString());
 
-  // 2) processa DEPOIS (Sheets/OpenAI/etc)
-  setImmediate(async () => {
-    try {
-      const msg = req.body.Body || "";
-      // TODO: sua lógica pesada aqui
-      console.log("PROCESSANDO:", msg);
-    } catch (e) {
-      console.error("ERRO NO PROCESSAMENTO:", e);
-    }
+  setImmediate(() => {
+    console.log("PROCESSANDO:", req.body.Body);
   });
 });
+
 
 
 // Porta dinâmica do Render
