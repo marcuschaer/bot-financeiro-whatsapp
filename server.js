@@ -3,35 +3,32 @@ const bodyParser = require("body-parser");
 const twilio = require("twilio");
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
 
-// 🔹 ROTA DE TESTE (opcional, só pra não ver "Cannot GET /")
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+/**
+ * ROTA DE TESTE (NAVEGADOR)
+ */
 app.get("/", (req, res) => {
-  res.send("Bot financeiro rodando 🚀");
+  res.send("Bot financeiro WhatsApp está online ✅");
 });
 
-// 🔹 ROTA DO WHATSAPP (ESSA É A IMPORTANTE)
+/**
+ * ROTA DO TWILIO (WHATSAPP)
+ */
 app.post("/whatsapp", (req, res) => {
-  const incomingMsg = req.body.Body?.toLowerCase() || "";
+  console.log("BODY RECEBIDO:", req.body);
 
-  let responseText = "Não entendi. Exemplo: Gastei 30 reais no cartão C6 Marcus";
-
-  if (incomingMsg.includes("gastei")) {
-    responseText = "💸 Gasto registrado! (em breve vai para a planilha)";
-  }
-
-  if (incomingMsg.includes("saldo")) {
-    responseText = "📊 Seu saldo atual será informado em breve.";
-  }
+  const mensagem = req.body.Body || "mensagem vazia";
 
   const twiml = new twilio.twiml.MessagingResponse();
-  twiml.message(responseText);
+  twiml.message(`Recebi: ${mensagem}`);
 
   res.type("text/xml");
   res.send(twiml.toString());
 });
 
-// 🔹 PORTA OBRIGATÓRIA DO RENDER
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor rodando na porta", PORT);
