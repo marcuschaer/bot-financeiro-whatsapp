@@ -16,14 +16,26 @@ app.get("/", (req, res) => {
 app.post("/whatsapp", (req, res) => {
   console.log("BODY RECEBIDO:", req.body);
 
-  const mensagem = req.body.Body || "mensagem vazia";
-
+  // 1) responde IMEDIATO
   const twiml = new twilio.twiml.MessagingResponse();
-  twiml.message(`Recebi: ${mensagem}`);
+  twiml.message("OK, recebi. Processando...");
 
-  res.writeHead(200, { "Content-Type": "text/xml" });
-  res.end(twiml.toString());
+  res.status(200);
+  res.type("text/xml");
+  res.send(twiml.toString());
+
+  // 2) processa DEPOIS (Sheets/OpenAI/etc)
+  setImmediate(async () => {
+    try {
+      const msg = req.body.Body || "";
+      // TODO: sua lógica pesada aqui
+      console.log("PROCESSANDO:", msg);
+    } catch (e) {
+      console.error("ERRO NO PROCESSAMENTO:", e);
+    }
+  });
 });
+
 
 // Porta dinâmica do Render
 const PORT = process.env.PORT || 10000;
