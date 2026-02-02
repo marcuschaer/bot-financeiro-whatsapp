@@ -5,7 +5,6 @@ const twilio = require("twilio");
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 /**
  * ROTA DE TESTE (NAVEGADOR)
@@ -25,7 +24,8 @@ app.post("/whatsapp", (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
   twiml.message(`Recebi: ${mensagem}`);
 
-  res.type("text/xml");
+  res.status(200);
+  res.set("Content-Type", "text/xml");
   res.send(twiml.toString());
 });
 
