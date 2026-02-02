@@ -1,36 +1,51 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const twilio = require("twilio");
+// server.js (ESM)
+import express from "express";
+import twilio from "twilio";
 
 const app = express();
 
-// ⚠️ OBRIGATÓRIO para Twilio
-app.use(bodyParser.urlencoded({ extended: false }));
+// Twilio envia application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: false }));
 
-// Health check (opcional, mas útil)
+// =============================
+// Health checks (Render)
+// =============================
 app.get("/", (req, res) => {
-  res.send("OK");
+  return res.status(200).send("OK");
 });
 
-// Endpoint do WhatsApp
-app.post("/", (req, res) => {
-  console.log("BODY RECEBIDO:", req.body);
-
-  const twiml = new twilio.twiml.MessagingResponse();
-  twiml.message("✅ Bot ativo. Mensagem recebida.");
-
-  res.status(200);
-  res.type("text/xml");
-  res.send(twiml.toString());
-
-  setImmediate(() => {
-    console.log("PROCESSANDO:", req.body.Body);
-  });
+app.get("/healthz", (req, res) => {
+  return res.status(200).send("OK");
 });
 
+// =============================
+// WhatsApp webhook (Twilio)
+// =============================
+app.post("/whatsapp", (req, res) => {
+  try {
+    console.log("BODY RECEBIDO:", req.body);
 
+    const incomingText = (req.body.Body || "").trim();
 
-// Porta dinâmica do Render
+    const MessagingResponse = twilio.twiml.MessagingResponse;
+    const twiml = new MessagingResponse();
+
+    // Resposta simples (confirmação)
+    twiml.message(`✅ Bot ativo. Recebi: ${incomingText || "(vazio)"}`);
+
+    // IMPORTANTE: responder 200 + XML
+    res.status(200);
+    res.type("text/xml");
+    return res.send(twiml.toString());
+  } catch (err) {
+    console.error("ERRO /whatsapp:", err);
+    return res.status(200).send("OK"); // evita retries agressivos do Twilio
+  }
+});
+
+// =============================
+// Start server
+// =============================
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
